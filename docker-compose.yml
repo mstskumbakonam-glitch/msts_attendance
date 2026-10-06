@@ -1,0 +1,68 @@
+# =============================================================================
+# Smart Attendance & Security System — Docker Compose
+# Phase 3: PostgreSQL 16 + pgvector (default) | Redis (optional, profile-gated)
+#
+# NOTES:
+#  - backend / dashboard / video_processor services are added in Phase 36.
+#  - Ports are bound to 127.0.0.1 to avoid exposing credentials on a network.
+#  - Redis is NOT started by default. Use:
+#      docker compose --profile redis up -d redis
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16 with pgvector extension
+  # ---------------------------------------------------------------------------
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: smart_attendance_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:       ${POSTGRES_DB}
+    ports:
+      # Bind ONLY to localhost — never expose on 0.0.0.0 in dev/prod
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Init scripts run ONLY on a fresh (empty) volume
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-smart_attendance}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Redis 7 — optional, gated behind 'redis' profile (ADR-10)
+  # Start with:  docker compose --profile redis up -d redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: smart_attendance_redis
+    profiles: ["redis"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+# =============================================================================
+# Named volumes (persist across container restarts)
+# =============================================================================
+volumes:
+  postgres_data:
+    name: smart_attendance_postgres_data
+  redis_data:
+    name: smart_attendance_redis_data

@@ -1,0 +1,48 @@
+**/.git
+**/.gitignore
+**/.venv
+# NOTE: docker/postgres/init/ is intentionally NOT excluded here.
+# It must be available for volume mounts in docker-compose.yml.
+**/venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/.coverage
+**/htmlcov
+**/.vscode
+**/.idea
+
+# Secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Biometric / data (NEVER in image)
+**/data
+**/faces
+**/uploads
+**/recordings
+**/tests/fixtures_local
+
+# Video
+**/*.mp4
+**/*.avi
+**/*.mkv
+**/*.mov
+
+# Model weights (downloaded at runtime)
+**/*.onnx
+**/*.pt
+**/*.pth
+**/.insightface
+**/weights
+
+# Docs
+**/*.md
+!**/README.md
+
+# OS
+**/.DS_Store
+**/Thumbs.db
