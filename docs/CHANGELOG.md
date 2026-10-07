@@ -61,3 +61,17 @@
 - Guided webcam enrollment UI in Streamlit `frontend/app.py` with live MJPEG preview, pose prompts, and progress bar.
 - Test suites: `backend/tests/cameras/test_webcam_mock.py` (3 tests) and `backend/tests/api/test_face_session.py` (5 tests).
 
+
+## [Phase 22] - 2026-10-07
+### Added
+- Camera management API (`GET/POST /cameras`, `GET/PATCH/DELETE /cameras/{id}`, `POST /cameras/{id}/test`) with per-source-type validation, credential masking, audit logging, and disable-instead-of-delete for referenced cameras.
+- `CameraManager` workers with ONLINE/ERROR/DISABLED status and `last_seen_at` heartbeat, started from the FastAPI lifespan.
+- Cameras page in the Streamlit dashboard (`frontend/components/cameras.py`, routed from `frontend/app.py`):
+  - Camera list with name, location, source type, status badge, enabled/disabled and last seen.
+  - ADMIN: add, edit, test connection, enable/disable, delete (with confirmation; reports when a referenced camera was disabled instead).
+  - OPERATOR: read-only list.
+  - RTSP cameras use a credentials reference (environment variable name) only; URLs with embedded credentials are rejected in the UI before any request is sent, and source URLs are masked again on display.
+- Tests: `backend/tests/api/test_cameras.py`, `frontend/tests/test_cameras_page.py` (19 tests).
+
+### Notes
+- The Cameras page lives in `frontend/components/` (not `frontend/pages/`) because Streamlit auto-registers files in `pages/` as standalone pages that would bypass the login gate in `frontend/app.py`.

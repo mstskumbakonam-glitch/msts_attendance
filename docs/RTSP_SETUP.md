@@ -26,6 +26,17 @@ CAMERA_2_CREDENTIALS=username:password
 
 Never commit `.env`.
 
+## Adding an RTSP Camera from the Dashboard
+
+Sign in as ADMIN and open **SYSTEM → Cameras → Add Camera**:
+
+1. Source type: **RTSP / CCTV**.
+2. RTSP URL: the URL **without** username/password, e.g. `rtsp://192.168.1.10:554/Streaming/Channels/101`.
+3. Credentials reference: the environment variable **name**, e.g. `CAMERA_1_CREDENTIALS` (its value `username:password` lives only in the server `.env`).
+4. Use **Manage Camera → Test Connection** to verify.
+
+The dashboard never asks for or displays camera passwords. A URL containing `user:pass@` is rejected before it is sent to the backend. OPERATOR users see a read-only camera list.
+
 ## Verification
 
 ### Unit tests

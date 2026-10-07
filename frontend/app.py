@@ -5,6 +5,7 @@ Unified dashboard with strict RBAC, multi-page sidebar navigation, and session a
 import streamlit as st
 from frontend.api_client import APIClient
 from frontend.components.auth import require_auth
+from frontend.components.cameras import render_cameras_page
 
 # Configure Streamlit page
 st.set_page_config(
@@ -282,8 +283,7 @@ elif selected_page == "📍 Movement Tracking":
     st.info("Sightings timeline (Security Module - Friend's scope)")
 
 elif selected_page == "📷 Cameras":
-    st.header("📷 Camera Management")
-    st.info("Camera registry & status (Coming in Phase 22)")
+    render_cameras_page(api, role)
 
 elif selected_page == "👤 Users":
     st.header("👤 User Management")
