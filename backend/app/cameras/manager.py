@@ -76,8 +76,11 @@ class CameraManager:
             db.close()
 
     def start_camera(self, camera_id: uuid.UUID) -> bool:
-        """Start a worker for one camera."""
+        """Start a worker for one camera (no-op if already running or manager stopped)."""
         with self._lock:
+            if not self._running:
+                return False
+
             worker = self._workers.get(camera_id)
 
             if worker and worker.is_alive():
@@ -99,8 +102,13 @@ class CameraManager:
 
         return True
 
-    def stop_camera(self, camera_id: uuid.UUID) -> bool:
-        """Stop one camera worker."""
+    def stop_camera(self, camera_id: uuid.UUID, mark_disabled: bool = True) -> bool:
+        """
+        Stop one camera worker.
+
+        mark_disabled=False is used for restarts so the status does not flash
+        DISABLED while the replacement worker starts.
+        """
         with self._lock:
             stop_event = self._stop_events.get(camera_id)
             worker = self._workers.get(camera_id)
@@ -113,13 +121,24 @@ class CameraManager:
         if worker:
             worker.join(timeout=3)
 
-        with self._lock:
-            self._stop_events.pop(camera_id, None)
-            self._workers.pop(camera_id, None)
+        self._unregister(camera_id, stop_event)
 
-        self._set_status(camera_id, "DISABLED", heartbeat=False)
+        if mark_disabled:
+            self._set_status(camera_id, "DISABLED", heartbeat=False)
 
         return True
+
+    def restart_camera(self, camera_id: uuid.UUID) -> bool:
+        """Stop the current worker (if any) and start a fresh one with the latest config."""
+        self.stop_camera(camera_id, mark_disabled=False)
+        return self.start_camera(camera_id)
+
+    def _unregister(self, camera_id: uuid.UUID, stop_event: threading.Event) -> None:
+        """Remove registry entries only if they still belong to the given worker."""
+        with self._lock:
+            if self._stop_events.get(camera_id) is stop_event:
+                self._stop_events.pop(camera_id, None)
+                self._workers.pop(camera_id, None)
 
     def is_running(self, camera_id: uuid.UUID) -> bool:
         """Return whether a camera worker is alive."""
@@ -232,9 +251,9 @@ class CameraManager:
                 except Exception:
                     pass
 
-            with self._lock:
-                self._workers.pop(camera_id, None)
-                self._stop_events.pop(camera_id, None)
+            # A replacement worker may already be registered (restart); only
+            # remove the entries that belong to this worker.
+            self._unregister(camera_id, stop_event)
 
     def _build_source(self, camera: Camera):
         settings = get_settings()

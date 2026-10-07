@@ -66,6 +66,9 @@
 ### Added
 - Camera management API (`GET/POST /cameras`, `GET/PATCH/DELETE /cameras/{id}`, `POST /cameras/{id}/test`) with per-source-type validation, credential masking, audit logging, and disable-instead-of-delete for referenced cameras.
 - `CameraManager` workers with ONLINE/ERROR/DISABLED status and `last_seen_at` heartbeat, started from the FastAPI lifespan.
+- Camera API drives workers at runtime: create (enabled) and enable start a worker; disable and delete (including referenced cameras that are disabled instead) stop it; a source change (`source_type`, `source_url`, `credentials_ref`) on an enabled camera restarts it. Worker calls run off the event loop, never undo a committed change, and log only the camera id.
+- `CameraManager.restart_camera()`; `stop_camera(mark_disabled=False)` for restarts; workers only unregister their own entries, so a slow-exiting old worker cannot remove its replacement; `start_camera` is a no-op once the manager is stopped.
+- Tests: worker-integration cases in `backend/tests/api/test_cameras.py` (manager mocked) and `backend/tests/cameras/test_camera_manager.py`.
 - Cameras page in the Streamlit dashboard (`frontend/components/cameras.py`, routed from `frontend/app.py`):
   - Camera list with name, location, source type, status badge, enabled/disabled and last seen.
   - ADMIN: add, edit, test connection, enable/disable, delete (with confirmation; reports when a referenced camera was disabled instead).
