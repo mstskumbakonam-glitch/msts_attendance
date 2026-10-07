@@ -135,11 +135,18 @@ class CameraService:
             "credentials_ref", camera.credentials_ref
         )
 
-        _validate_source_configuration(
-            new_source_type,
-            new_source_url,
-            new_credentials_ref,
-        )
+        try:
+            _validate_source_configuration(
+                new_source_type,
+                new_source_url,
+                new_credentials_ref,
+            )
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(exc),
+            ) from exc
+
         self._validate_source_path(new_source_type, new_source_url)
 
         if "name" in values and values["name"] != camera.name:
