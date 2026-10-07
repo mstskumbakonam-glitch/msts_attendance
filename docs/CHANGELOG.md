@@ -90,3 +90,13 @@
 ### Notes
 - The current Phase 22 branch has recognition processing embedded outside a standalone `backend/app/cameras/worker.py`; therefore no fabricated worker integration was added. The EventBus is registered at application startup and is ready for the recognition pipeline to publish `FaceObserved` events when that worker exists.
 
+
+## [Phase 24] - 2026-10-07
+### Added
+- Blacklist CRUD API with ADMIN-only create/update/deactivate and ADMIN/OPERATOR read/search.
+- Audit logging for blacklist create, update and deactivate actions; responses contain no biometric fields.
+- Deactivation disables associated blacklist embeddings (`is_active=false`).
+- Streamlit blacklist management component with institutional-authorization notice.
+- Pure identity precedence helper and tests: higher similarity wins; ties prefer BLACKLISTED.
+### Notes
+- The current repository branch still does not contain the live recognition worker / embedding-commit pipeline from the earlier face-recognition phases. Live blacklist face enrollment and camera recognition integration remain NOT VERIFIED.

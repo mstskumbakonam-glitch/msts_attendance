@@ -5,6 +5,7 @@ Unified dashboard with strict RBAC, multi-page sidebar navigation, and session a
 import streamlit as st
 from frontend.api_client import APIClient
 from frontend.components.auth import require_auth
+from frontend.components.blacklist import render_blacklist_page
 from frontend.components.detection_events import render_detection_events_page
 from frontend.components.cameras import render_cameras_page
 
@@ -272,8 +273,7 @@ elif selected_page == "⚠️ Alerts":
     st.info("Real-time intrusion & blacklist alerts (Security Module - Friend's scope)")
 
 elif selected_page == "🚫 Blacklist":
-    st.header("🚫 Blacklist Management")
-    st.info("Campus blacklist registry (Security Module - Friend's scope)")
+    render_blacklist_page(api, role)
 
 elif selected_page == "🔍 Detection Events":
     render_detection_events_page(api)

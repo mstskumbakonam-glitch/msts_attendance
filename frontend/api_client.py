@@ -236,3 +236,35 @@ class APIClient:
             params["date"] = event_date
         res = requests.get(url, params=params, headers=self._get_headers())
         return self._handle_response(res)
+
+
+    def list_blacklist(self, q: Optional[str] = None, status: Optional[str] = None, page: int = 1, size: int = 20) -> Dict[str, Any]:
+        url = f"{self.base_url}/blacklist"
+        params: Dict[str, Any] = {"page": page, "size": size}
+        if q:
+            params["q"] = q
+        if status:
+            params["status"] = status
+        res = requests.get(url, params=params, headers=self._get_headers())
+        return self._handle_response(res)
+
+    def create_blacklist(self, full_name: str, reason: str, category: Optional[str] = None, severity: str = "HIGH", notes: Optional[str] = None) -> Dict[str, Any]:
+        url = f"{self.base_url}/blacklist"
+        payload = {"full_name": full_name, "reason": reason, "category": category, "severity": severity, "notes": notes}
+        res = requests.post(url, json=payload, headers=self._get_headers())
+        return self._handle_response(res)
+
+    def get_blacklist(self, entry_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/blacklist/{entry_id}"
+        res = requests.get(url, headers=self._get_headers())
+        return self._handle_response(res)
+
+    def update_blacklist(self, entry_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        url = f"{self.base_url}/blacklist/{entry_id}"
+        res = requests.patch(url, json=data, headers=self._get_headers())
+        return self._handle_response(res)
+
+    def deactivate_blacklist(self, entry_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/blacklist/{entry_id}/deactivate"
+        res = requests.post(url, headers=self._get_headers())
+        return self._handle_response(res)
