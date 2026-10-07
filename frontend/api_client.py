@@ -150,3 +150,67 @@ class APIClient:
         url = f"{self.base_url}/students/{student_uuid}/face/session/{session_id}"
         res = requests.delete(url, headers=self._get_headers())
         self._handle_response(res)
+    
+    def list_cameras(self) -> Dict[str, Any]:
+        url = f"{self.base_url}/cameras"
+        res = requests.get(url, headers=self._get_headers())
+        return self._handle_response(res)
+
+    def get_camera(self, camera_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/cameras/{camera_id}"
+        res = requests.get(url, headers=self._get_headers())
+        return self._handle_response(res)
+
+    def create_camera(
+        self,
+        name: str,
+        location: str,
+        source_type: str,
+        source_url: str,
+        credentials_ref: Optional[str] = None,
+        enabled: bool = True,
+    ) -> Dict[str, Any]:
+        url = f"{self.base_url}/cameras"
+        payload = {
+            "name": name,
+            "location": location,
+            "source_type": source_type,
+            "source_url": source_url,
+            "credentials_ref": credentials_ref,
+            "enabled": enabled,
+        }
+        res = requests.post(
+            url,
+            json=payload,
+            headers=self._get_headers(),
+        )
+        return self._handle_response(res)
+
+    def update_camera(
+        self,
+        camera_id: str,
+        data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        url = f"{self.base_url}/cameras/{camera_id}"
+        res = requests.patch(
+            url,
+            json=data,
+            headers=self._get_headers(),
+        )
+        return self._handle_response(res)
+
+    def delete_camera(self, camera_id: str) -> None:
+        url = f"{self.base_url}/cameras/{camera_id}"
+        res = requests.delete(
+            url,
+            headers=self._get_headers(),
+        )
+        self._handle_response(res)
+
+    def test_camera(self, camera_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/cameras/{camera_id}/test"
+        res = requests.post(
+            url,
+            headers=self._get_headers(),
+        )
+        return self._handle_response(res)
