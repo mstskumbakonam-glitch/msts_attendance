@@ -78,3 +78,15 @@
 
 ### Notes
 - The Cameras page lives in `frontend/components/` (not `frontend/pages/`) because Streamlit auto-registers files in `pages/` as standalone pages that would bypass the login gate in `frontend/app.py`.
+
+## [Phase 23] - 2026-10-07
+### Added
+- In-process EventBus with bounded non-blocking queue, drop-oldest overflow counter, isolated handler failures, and draining shutdown.
+- Typed `FaceObserved` event and Attendance/Detection/Security handler layer.
+- `GET /api/v1/events` with camera, type, student and date filters.
+- Streamlit Detection Events view with matching filters.
+- EventBus unit coverage for fan-out, handler isolation, overflow and shutdown drain.
+
+### Notes
+- The current Phase 22 branch has recognition processing embedded outside a standalone `backend/app/cameras/worker.py`; therefore no fabricated worker integration was added. The EventBus is registered at application startup and is ready for the recognition pipeline to publish `FaceObserved` events when that worker exists.
+

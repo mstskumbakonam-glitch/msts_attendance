@@ -1,9 +1,10 @@
-﻿"""
+"""
 FastAPI Application Entrypoint
 Application factory with request ID, security headers, CORS,
 uniform error handling, structured logging, and camera workers.
 """
 
+import logging
 import uuid
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Callable
@@ -16,6 +17,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.app.api.v1.router import api_v1_router
 from backend.app.cameras.manager import camera_manager
+from backend.app.events.bus import event_bus
+from backend.app.events.handlers import AttendanceHandler, DetectionHandler, SecurityHandler
+from backend.app.events.types import FaceObserved
+
 from backend.app.core.config import Settings, get_settings
 from backend.app.core.errors import (
     http_exception_handler,
@@ -24,19 +29,34 @@ from backend.app.core.errors import (
     validation_exception_handler,
 )
 from backend.app.core.logging import configure_logging
+
+
+logger = logging.getLogger(__name__)
+
+
+def _register_event_handlers() -> None:
+    if getattr(event_bus, "_handlers_registered", False):
+        return
+    event_bus.subscribe(FaceObserved, AttendanceHandler())
+    event_bus.subscribe(FaceObserved, DetectionHandler())
+    event_bus.subscribe(FaceObserved, SecurityHandler())
+    event_bus._handlers_registered = True
 from backend.app.core.rate_limit import limiter
 from slowapi.errors import RateLimitExceeded
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Start and stop camera workers with the application lifecycle."""
+    """Start and stop the event bus and camera workers with the application lifecycle."""
+    _register_event_handlers()
+    event_bus.start()
     camera_manager.start()
 
     try:
         yield
     finally:
         camera_manager.stop()
+        event_bus.stop(drain=True)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

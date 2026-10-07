@@ -214,3 +214,25 @@ class APIClient:
             headers=self._get_headers(),
         )
         return self._handle_response(res)
+
+    def list_events(
+        self,
+        camera_id: Optional[str] = None,
+        event_type: Optional[str] = None,
+        student_id: Optional[str] = None,
+        event_date: Optional[str] = None,
+        page: int = 1,
+        size: int = 50,
+    ) -> Dict[str, Any]:
+        url = f"{self.base_url}/events"
+        params: Dict[str, Any] = {"page": page, "size": size}
+        if camera_id:
+            params["camera_id"] = camera_id
+        if event_type:
+            params["event_type"] = event_type
+        if student_id:
+            params["student_id"] = student_id
+        if event_date:
+            params["date"] = event_date
+        res = requests.get(url, params=params, headers=self._get_headers())
+        return self._handle_response(res)
